@@ -8,7 +8,9 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
 from .models import User
-from .utils import is_valid_form, validate_email, validate_password
+from django.contrib.auth.models import User
+from django.contrib.auth import authenticate
+from rest_framework.authtoken.models import Token
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -19,43 +21,39 @@ from rest_framework import status
 
 class loginAPI(APIView):
     def post(self, request):
-        data = json.loads(request.body)
-        email = data.get('email')
+        #it's a multipart form data
+        data = request.data
+        username = data.get('username')
         password = data.get('password')
-        if not email:
-            return Response({'error': 'Email is required'}, status=status.HTTP_400_BAD_REQUEST)
+        if not username:
+            return Response({'error': 'Username is required'}, status=status.HTTP_400_BAD_REQUEST)
+        
         if not password:
             return Response({'error': 'Password is required'}, status=status.HTTP_400_BAD_REQUEST)
-        if not validate_email(email):
-            return Response({'error': 'Please enter a valid email address'}, status=status.HTTP_400_BAD_REQUEST)
-        if not validate_password(password):
-            return Response({'error': 'Password must be at least 8 characters long'}, status=status.HTTP_400_BAD_REQUEST)
-        user = User.objects.filter(email=email, password=password).first()
+        user = authenticate(username=username, password=password)
         if not user:
             return Response({'error': 'Invalid email or password'}, status=status.HTTP_400_BAD_REQUEST)
-        return Response({'message': 'Login successful'}, status=status.HTTP_200_OK)
+        token, _ = Token.objects.get_or_create(user=user)
+        return Response({'token' : token.key }, status=status.HTTP_200_OK)
 
 class registerAPI(APIView):
     def post(self, request):
-        data = json.loads(request.body)
-        first_name = data.get('first_name')
-        last_name = data.get('last_name')
+        data = request.data
+        username = data.get('username')
         email = data.get('email')
         password = data.get('password')
-        if not first_name:
-            return Response({'error': 'First name is required'}, status=status.HTTP_400_BAD_REQUEST)
-        if not last_name:
-            return Response({'error': 'Last name is required'}, status=status.HTTP_400_BAD_REQUEST)
+        if not username:
+            return Response({'error': 'Username is required'}, status=status.HTTP_400_BAD_REQUEST)
         if not email:
             return Response({'error': 'Email is required'}, status=status.HTTP_400_BAD_REQUEST)
         if not password:
             return Response({'error': 'Password is required'}, status=status.HTTP_400_BAD_REQUEST)
-        if not validate_email(email):
-            return Response({'error': 'Please enter a valid email address'}, status=status.HTTP_400_BAD_REQUEST)
-        if not validate_password(password):
-            return Response({'error': 'Password must be at least 8 characters long'}, status=status.HTTP_400_BAD_REQUEST)
+
         user = User.objects.filter(email=email).first()
         if user:
             return Response({'error': 'Email is already taken'}, status=status.HTTP_400_BAD_REQUEST)
-        user = User.objects.create(first_name=first_name, last_name=last_name, email=email, password=password)
+        user = User.objects.filter(username=username).first()
+        if user:
+            return Response({'error': 'Username is already taken'}, status=status.HTTP_400_BAD_REQUEST)
+        user = User.objects.create_user(username=username , email=email, password=password)
         return Response({'message': 'User created successfully'}, status=status.HTTP_201_CREATED)

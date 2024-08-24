@@ -35,20 +35,18 @@ INSTALLED_APPS = [
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'rest_framework',
-    'books',
-    'books.apps.BooksConfig',
-    'category',
-    'category.apps.CategoryConfig',
+    'corsheaders',
+
+    
     'user',
-    'user.apps.UserConfig',
-    'order',
-    'order.apps.OrderConfig',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -57,6 +55,8 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+CORS_ALLOWED_ORIGINS = ['http://127.0.0.1:5500']
 
 ROOT_URLCONF = 'E_bookstore_API.urls'
 
