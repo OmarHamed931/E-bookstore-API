@@ -14,6 +14,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from .serializers import UserSerializer
 
 # Create a new user
 # POST /api
@@ -27,7 +28,6 @@ class loginAPI(APIView):
         password = data.get('password')
         if not username:
             return Response({'error': 'Username is required'}, status=status.HTTP_400_BAD_REQUEST)
-        
         if not password:
             return Response({'error': 'Password is required'}, status=status.HTTP_400_BAD_REQUEST)
         user = authenticate(username=username, password=password)
@@ -37,23 +37,11 @@ class loginAPI(APIView):
         return Response({'token' : token.key }, status=status.HTTP_200_OK)
 
 class registerAPI(APIView):
+    # implement the post method using serializers
     def post(self, request):
-        data = request.data
-        username = data.get('username')
-        email = data.get('email')
-        password = data.get('password')
-        if not username:
-            return Response({'error': 'Username is required'}, status=status.HTTP_400_BAD_REQUEST)
-        if not email:
-            return Response({'error': 'Email is required'}, status=status.HTTP_400_BAD_REQUEST)
-        if not password:
-            return Response({'error': 'Password is required'}, status=status.HTTP_400_BAD_REQUEST)
-
-        user = User.objects.filter(email=email).first()
-        if user:
-            return Response({'error': 'Email is already taken'}, status=status.HTTP_400_BAD_REQUEST)
-        user = User.objects.filter(username=username).first()
-        if user:
-            return Response({'error': 'Username is already taken'}, status=status.HTTP_400_BAD_REQUEST)
-        user = User.objects.create_user(username=username , email=email, password=password)
-        return Response({'message': 'User created successfully'}, status=status.HTTP_201_CREATED)
+        serializer = UserSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+            token , _ = Token.objects.get_or_create(user=user)
+            return Response({'token': token.key}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
