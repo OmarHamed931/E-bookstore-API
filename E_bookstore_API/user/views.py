@@ -34,7 +34,7 @@ class loginAPI(APIView):
         if not user:
             return Response({'error': 'Invalid email or password'}, status=status.HTTP_400_BAD_REQUEST)
         token, _ = Token.objects.get_or_create(user=user)
-        return Response({'token' : token.key }, status=status.HTTP_200_OK)
+        return Response({'token' : token.key }, status=status.HTTP_200_OK) 
 
 class registerAPI(APIView):
     # implement the post method using serializers
