@@ -42,6 +42,24 @@ class registerAPI(APIView):
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
-            token , _ = Token.objects.get_or_create(user=user)
+            # i want to make sure that the user is created
+            # i want to return a token to the user
+            user= User.objects.get(username=user.username)
+
+
+            if not user:
+                return Response({'error': 'User not created'}, status=status.HTTP_400_BAD_REQUEST)
+            token, created = Token.objects.get_or_create(user=user)
+            if not token:
+                return Response({'error': 'Token not created'}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Debug statements
+            print(f"User: {user.username}")
+            print(f"Token: {token.key}")
+            print(f"Token Created: {created}")
+
             return Response({'token': token.key}, status=status.HTTP_201_CREATED)
+            
+
+            
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
