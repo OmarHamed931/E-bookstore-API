@@ -3,6 +3,7 @@ from django.db import models
 def upload_location(instance, filename):
     return f"book_cover/{instance.title}/{filename}"
 class Book(models.Model):
+    id = models.AutoField(primary_key=True)
     title = models.CharField(max_length=100)
     author = models.CharField(max_length=100)
     description = models.TextField()
