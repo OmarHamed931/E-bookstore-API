@@ -43,6 +43,21 @@ class BookDetail(APIView):
             'cover': book.cover.url if book.cover else None
         }
         return Response(data, status=status.HTTP_200_OK)
-
+class FeaturedBooks(APIView):
+    def get(self, request):
+        # get the newest 5 books
+        books = Book.objects.order_by('-id')[:5]
+        data = []
+        for book in books:
+            data.append({
+                'id': book.id,
+                'title': book.title,
+                'author': book.author,
+                'description': book.description,
+                'price': book.price,
+                'cover': book.cover.url if book.cover else None
+            })
+        return Response(data, status=status.HTTP_200_OK)
+    
         
 # Create your views here.
